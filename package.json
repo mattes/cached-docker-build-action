@@ -1,0 +1,23 @@
+{
+  "name": "cached-docker-build-action",
+  "description": "cached-docker-build-action",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattes/cached-docker-build-action.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mattes/cached-docker-build-action/issues"
+  },
+  "homepage": "https://github.com/mattes/cached-docker-build-action#readme",
+  "dependencies": {
+    "@actions/cache": "^1.0.2",
+    "@actions/core": "^1.2.6",
+    "@vercel/ncc": "^0.24.1",
+    "parse-duration": "^0.4.4",
+    "yargs-parser": "^20.2.0"
+  }
+}
