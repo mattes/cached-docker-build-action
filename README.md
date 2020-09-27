@@ -1,4 +1,27 @@
-# cached-docker-build-action
+# Cached Docker Build
+
+This Github Action stores and retrieves a Docker image from Github's cache.
+It ueses the official [actions/cache](https://github.com/actions/toolkit/tree/main/packages/cache) library.
 
 
---pull		Always attempt to pull a newer version of the image
+## Github Action Inputs
+
+| Variable                         | Description                                                                 |
+|----------------------------------|-----------------------------------------------------------------------------|
+| `args`                           | ***Required*** Arguments passed to `docker build` command                   |
+| `cache_key`                      | ***Required*** Key used for caching                                         |
+
+
+## Example Usage
+
+```
+uses: mattes/cached-docker-build-action@v1
+with:
+  args: --pull --file Dockerfile --tag my-image:tag .
+  cache_key: ${{ hashFiles('**/lockfiles') }}
+```
+
+## Future work
+
+  * Implement `expires` flag, blocked by [Clear cache #2](https://github.com/actions/cache/issues/2).
+

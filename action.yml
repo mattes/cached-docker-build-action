@@ -12,10 +12,6 @@ inputs:
   cache_key:
     description: "Cache key"
     required: true
-  expires:
-    description: "Set expiration for cache (example '12 hours' or '3 days', ...)"
-
-# ${{runner.temp}} directory is guaranteed to be empty at the start of each job, even on self-hosted runners.
 
 runs:
   using: "node12"
