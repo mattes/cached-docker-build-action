@@ -35,7 +35,13 @@ const duration = __webpack_require__(3805);
     abort("docker build args require at least one --tag")
   }
 
-  const primaryKey = sha256(`${cacheKey} ${dockerBuildArgs}`)
+  // parse dockerfile from args
+  const dockerfile = getDockerfile(dockerBuildArgs)
+  if (dockerfile == "") {
+    abort("docker build args require --file")
+  }
+
+  const primaryKey = sha256(`${cacheKey} ${dockerBuildArgs} ${sha256File(dockerfile)}`)
   const cachePath = path.join(runnerTemp, "cached-docker-build", primaryKey)
   let cacheHit = false
 
@@ -114,9 +120,26 @@ function getDockerBuildTags(cmd) {
   return tags.flat()
 }
 
+function getDockerfile(cmd) {
+  let args = __webpack_require__(8909)(cmd)
+  if (args["f"]) {
+    return args["f"]
+  }
+
+  if (args["file"]) {
+    return args["file"]
+  }
+
+  return ""
+}
+
 // sha256 returns sha256(input) hex string
 function sha256(input) {
   return __webpack_require__(6417).createHash('sha256').update(input, 'utf8').digest('hex');
+}
+
+function sha256File(filename) {
+  return sha256(fs.readFileSync(filename))
 }
 
 
