@@ -15,27 +15,24 @@ const duration = require('parse-duration');
   const runnerTemp = process.env['RUNNER_TEMP'] || ""
 
   if (runnerTemp == "") {
-    core.setFailed("RUNNER_TEMP env var missing")
-    return
+    abort("RUNNER_TEMP env var missing")
   }
 
   if (dockerBuildArgs == "") {
-    core.setFailed("docker build args missing")
-    return
+    abort("docker build args missing")
   }
 
   // parse docker build args
   const dockerBuildTags = getDockerBuildTags(dockerBuildArgs)
   if (dockerBuildTags.length == 0) {
-    core.setFailed("docker build args require at least one --tag")
-    return
+    abort("docker build args require at least one --tag")
   }
 
   const primaryKey = sha256(`${cacheKey} ${dockerBuildArgs}`)
   const cachePath = path.join(runnerTemp, "cached-docker-build", primaryKey)
   let cacheHit = false
 
-  core.info(`Cached key: ${primaryKey}`)
+  core.info(`Cache Key Hash: ${primaryKey}`)
 
   // try to restore cachePath from Github cache
   try {

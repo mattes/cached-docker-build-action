@@ -19,31 +19,27 @@ const duration = __webpack_require__(3805);
   // read and validate inputs
   const dockerBuildArgs = process.env["INPUT_ARGS"] || ""
   const cacheKey = process.env["INPUT_CACHE_KEY"] || ""
-  const expiresStr = process.env["INPUT_EXPIRES"] || ""
   const runnerTemp = process.env['RUNNER_TEMP'] || ""
 
   if (runnerTemp == "") {
-    core.setFailed("RUNNER_TEMP env var missing")
-    return
+    abort("RUNNER_TEMP env var missing")
   }
 
   if (dockerBuildArgs == "") {
-    core.setFailed("docker build args missing")
-    return
+    abort("docker build args missing")
   }
 
   // parse docker build args
   const dockerBuildTags = getDockerBuildTags(dockerBuildArgs)
   if (dockerBuildTags.length == 0) {
-    core.setFailed("docker build args require at least one --tag")
-    return
+    abort("docker build args require at least one --tag")
   }
 
-  const primaryKey = sha256(`${cacheKey} ${dockerBuildArgs} ${expiresStr}`)
+  const primaryKey = sha256(`${cacheKey} ${dockerBuildArgs}`)
   const cachePath = path.join(runnerTemp, "cached-docker-build", primaryKey)
   let cacheHit = false
 
-  core.info(`Cached key: ${primaryKey}`)
+  core.info(`Cache Key Hash: ${primaryKey}`)
 
   // try to restore cachePath from Github cache
   try {
@@ -59,48 +55,23 @@ const duration = __webpack_require__(3805);
     }
   }
 
-  // load docker image if it was cached and not expired
+  // load docker image if it was cached
   if (cacheHit) {
-    let expires = 0;
-    try {
-      expires = Number(fs.readFileSync(path.join(cachePath, ".meta.expires")));
-    } catch (err) {}
-
-    if (expires > 0 && Date.now() >= expires) {
-      core.info("Cache is expired")
-    } else {
-      exec(`docker load -i ${path.join(cachePath, "image.tar.gz")}`, false);
-      core.info(`${dockerBuildTags.join(", ")} successfully loaded from cache`)
-      return
-    }
+    exec(`docker load -i ${path.join(cachePath, "image.tar")}`, false);
+    core.info(`${dockerBuildTags.join(", ")} successfully loaded from cache`)
+    return
   }
 
   // docker build/save and store meta data in cache path
   exec(`docker build ${dockerBuildArgs}`, true);
   exec(`mkdir -p ${cachePath}`, false);
   exec(`docker save -o ${path.join(cachePath, "image.tar")} ${dockerBuildTags.join(" ")}`, false);
-  exec(`gzip ${path.join(cachePath, "image.tar")}`, false)
-
-  // parse expiresStr into timestamp
-  let expires = 0
-  if (expiresStr != "") {
-    expires = Date.now() + duration(expiresStr, "ms")
-  }
-
-  if (expires > 0) {
-    fs.writeFileSync(path.join(cachePath, ".meta.expires"), expires)
-  }
 
   // save cache
   try {
     await cache.saveCache([cachePath], primaryKey);
   } catch (error) {
     core.error(error.message);
-  }
-
-  if (expires > 0) {
-    let expiresDate = new Date(expires)
-    core.info(`Cache expires ${expiresDate.toUTCString()}`)
   }
 
 })();
