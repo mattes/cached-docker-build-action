@@ -34,7 +34,9 @@ const duration = require('parse-duration');
     abort("docker build args require --file")
   }
 
-  const primaryKey = sha256(`${cacheKey} ${dockerBuildArgs} ${sha256File(dockerfile)}`)
+  const firstTag = dockerBuildTags[0]
+  const hash = sha256(`${cacheKey} ${dockerBuildArgs} ${sha256File(dockerfile)}`)
+  const primaryKey = firstTag + hash
   const cachePath = path.join(runnerTemp, "cached-docker-build", primaryKey)
   let cacheHit = false
 
